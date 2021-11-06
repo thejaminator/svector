@@ -1,7 +1,7 @@
 # Usage
 
-To use slist in a project
+To use svector in a project
 
 ```
-import slist
+import svector
 ```

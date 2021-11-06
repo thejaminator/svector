@@ -58,14 +58,14 @@ class Svector(Sequence[A_co]):
         return self.__data.__hash__()
 
     def append(self, val: B) -> "Svector[Union[A_co, B]]":
-        # Type stubs Pyrsistent as invariant, but we are covariant. Implementation wise, the trie can be of any ype.
+        # Type stubs of Pyrsistent are wrong, they assume stuff you have has to be A_co rather than something wider.
         return Svector(self.__data.append(val))  # type: ignore
 
     def delete(self, index: int, stop: Optional[int]) -> "Svector[A_co]":
         return Svector(self.__data.delete(index=index, stop=stop))
 
     def extend(self, obj: Iterable[B]) -> "Svector[Union[A_co,B]]":
-        return Svector(self.__data.extend(obj))
+        return Svector(self.__data.extend(obj)) # type: ignore
 
     def tolist(self) -> list[A_co]:
         return self.to_list()

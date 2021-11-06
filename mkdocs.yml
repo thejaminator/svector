@@ -1,7 +1,7 @@
-site_name: slist
-site_url: https://thejaminator.github.io/slist
-repo_url: https://github.com/thejaminator/slist
-repo_name: thejaminator/slist
+site_name: svector
+site_url: https://thejaminator.github.io/svector
+repo_url: https://github.com/thejaminator/svector
+repo_name: thejaminator/svector
 #strict: true
 nav:
   - Home: index.md
@@ -51,7 +51,7 @@ plugins:
       lang: en
   - mkdocstrings:
       watch:
-        - slist
+        - svector
 extra:
   social:
     - icon: fontawesome/brands/twitter
@@ -63,7 +63,7 @@ extra:
       link: https://github.com/waynerv/cookiecutter-pypackage
       name: Facebook
     - icon: fontawesome/brands/github
-      link: https://github.com/thejaminator/slist
+      link: https://github.com/thejaminator/svector
       name: Github
     - icon: material/email
       link: "mailto:chuajamessh@gmail.com"

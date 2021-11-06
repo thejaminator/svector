@@ -19,5 +19,4 @@ To do:
 - Add parmap_coroutine
 - Add benchmarks
 - Add mutation checks
-- Add length caching possible due to immutability
 - Support Maybe Monad / flupy

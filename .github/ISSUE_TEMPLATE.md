@@ -1,4 +1,4 @@
-* slist version:
+* svector version:
 * Python version:
 * Operating System:
 

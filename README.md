@@ -1,6 +1,6 @@
-# Svector (Pronounced Swag-tor)
+# Svector
 
-Svector provide extension methods to pyrsistent data structures. 
+Svector (pronounced Swag-tor) provides extension methods to pyrsistent data structures. 
 Easily chain your methods confidently, just like in functional languages. Leverage 
 the latest mypy features to spot errors during coding.
 
@@ -10,13 +10,13 @@ the latest mypy features to spot errors during coding.
 [![Build Status](https://github.com/thejaminator/svector/actions/workflows/dev.yml/badge.svg)](https://github.com/thejaminator/svector/actions/workflows/dev.yml)
 
 ```
-pip install typesafe-immutables
+pip install svector
 ```
 
 Immutable list replacement for python. With postfix methods for easy functional programming.
 
 
-* GitHub: <https://github.com/thejaminator/slist>
+* GitHub: <https://github.com/thejaminator/svector>
 
 
 ## Quick Start

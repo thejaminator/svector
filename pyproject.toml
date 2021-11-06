@@ -1,9 +1,9 @@
 [tool]
 [tool.poetry]
-name = "slist"
+name = "svector"
 version = "0.1.0"
-homepage = "https://github.com/thejaminator/slist"
-description = "A typesafe immutable list for python. With postfix methods for easy functional programming."
+homepage = "https://github.com/thejaminator/svector"
+description = "Typesafe immutable datastructure for python. With plenty of methods for fluent functional programming."
 authors = ["James Chua <chuajamessh@gmail.com>"]
 readme = "README.md"
 license =  "MIT"
@@ -19,14 +19,16 @@ classifiers=[
     'Programming Language :: Python :: 3.9',
 ]
 packages = [
-    { include = "slist" },
+    { include = "svector" },
     { include = "tests", format = "sdist" },
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pyrsistent = "^0.17.0"
 
 [tool.poetry.dev-dependencies]
+pyrsistent = "^0.17.0"
 black  = { version = "^21.5b2", optional = true}
 mypy = {version = "^0.900", optional = true}
 pytest  = { version = "^6.2.4", optional = true}

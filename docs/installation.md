@@ -2,33 +2,33 @@
 
 ## Stable release
 
-To install slist, run this command in your
+To install svector, run this command in your
 terminal:
 
 ``` console
-$ pip install slist
+$ pip install svector
 ```
 
-This is the preferred method to install slist, as it will always install the most recent stable release.
+This is the preferred method to install svector, as it will always install the most recent stable release.
 
 If you don't have [pip][] installed, this [Python installation guide][]
 can guide you through the process.
 
 ## From source
 
-The source for slist can be downloaded from
+The source for svector can be downloaded from
 the [Github repo][].
 
 You can either clone the public repository:
 
 ``` console
-$ git clone git://github.com/thejaminator/slist
+$ git clone git://github.com/thejaminator/svector
 ```
 
 Or download the [tarball][]:
 
 ``` console
-$ curl -OJL https://github.com/thejaminator/slist/tarball/master
+$ curl -OJL https://github.com/thejaminator/svector/tarball/master
 ```
 
 Once you have a copy of the source, you can install it with:
