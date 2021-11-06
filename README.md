@@ -1,6 +1,6 @@
 # Svector
 
-Svector (pronounced Swag-tor) provides extension methods to pyrsistent data structures. 
+Svector (pronounced Swag-tor) provides extension methods to [pyrsistent](https://github.com/tobgu/pyrsistent) data structures. 
 Easily chain your methods confidently with tons of additional methods. Leverage 
 the latest mypy features to spot errors during coding.
 
@@ -59,7 +59,3 @@ result = (
     .take(5)
 )
 ```
-
-
-## Methods
-Svector is heavily influenced by Scala, hence the S.
