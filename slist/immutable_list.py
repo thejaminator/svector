@@ -1,7 +1,6 @@
 import concurrent.futures
 from functools import reduce
 from typing import (
-    TypeVar,
     Generic,
     Optional,
     Final,
@@ -13,33 +12,11 @@ from typing import (
     Union,
     NoReturn,
     Callable,
-    Protocol,
-    Hashable,
 )
 from abc import abstractmethod
-
-A_co = TypeVar("A_co", covariant=True)
-B = TypeVar("B")
-
 from collections import abc
 
-CanCompare = TypeVar("CanCompare", bound="Comparable")
-CanHash = TypeVar("CanHash", bound=Hashable)
-
-
-class Comparable(Protocol):
-    def __lt__(self: CanCompare, other: CanCompare) -> bool:
-        pass
-
-    def __gt__(self: CanCompare, other: CanCompare) -> bool:
-        pass
-
-    def __le__(self: CanCompare, other: CanCompare) -> bool:
-        pass
-
-    def __ge__(self: CanCompare, other: CanCompare) -> bool:
-        pass
-
+from slist.type_definitions import A_co, B, CanCompare, CanHash
 
 class Slist(abc.Sequence[A_co]):
     # Some help from https://github.com/tobgu/pyrsistent/blob/master/pyrsistent/_plist.py
@@ -62,10 +39,10 @@ class Slist(abc.Sequence[A_co]):
         ...
 
     @staticmethod
-    def args(*args: B) -> "Slist[B]":
+    def new(*args: B) -> "Slist[B]":
         """Constructs a Slist from argumetns
         TODO:Find out if we can hack __new__ to do this
-        >>> Slist.args(1,2,3)
+        >>> Slist.new(1,2,3)
         """
         return Slist.of(args)
 
@@ -118,18 +95,9 @@ class Slist(abc.Sequence[A_co]):
             # TODO: Less dumb way
             return Slist.of(self.to_list().__getitem__(i))
 
-    def to_list(self) -> list[A_co]:
-        return [item for item in self]
-
     @staticmethod
     def empty() -> "Slist[A_co]":
         return Slist.of([])
-
-    def __len__(self) -> int:
-        count = 0
-        for _ in self:
-            count += 1
-        return count
 
     def __iter__(self) -> Iterator[A_co]:
         current_item = self
@@ -154,12 +122,16 @@ class Slist(abc.Sequence[A_co]):
         """Alias for prepend"""
         return self.prepend(other)
 
+
+
     def extend(self, iterable: Iterable[B]) -> "Slist[Union[A_co, B]]":
         previous_item: Slist[A_co] = self
         for item in iterable:
             previous_item: Slist[Union[A_co, B]] = previous_item.prepend(item)  # type: ignore
         return previous_item
 
+    def to_list(self) -> list[A_co]:
+        return [item for item in self]
     @property
     def not_empty(self) -> bool:
         return len(self) > 0
@@ -210,9 +182,7 @@ class Slist(abc.Sequence[A_co]):
                 return item
         return None
 
-    def find_one_or_raise(
-        self, predicate: Callable[[A_co], bool], exception: Exception
-    ) -> A_co:
+    def find_one_or_raise(self, predicate: Callable[[A_co], bool], exception: Exception) -> A_co:
         result = self.find_one(predicate=predicate)
         if result is not None:
             return result
@@ -244,9 +214,7 @@ class Slist(abc.Sequence[A_co]):
 
             return Slist.of(acc)
 
-    def sort_by(
-        self, key: Callable[[A_co], CanCompare], reverse: bool = False
-    ) -> "Slist[A_co]":
+    def sort_by(self, key: Callable[[A_co], CanCompare], reverse: bool = False) -> "Slist[A_co]":
         """
         Mypy does not typecheck properly until https://github.com/python/mypy/issues/11167 is resolved
         Use sort_by(lambda x: x) to sort by the element.
@@ -281,14 +249,10 @@ class Slist(abc.Sequence[A_co]):
                 output.append(item)
         return Slist.of(output)
 
-    def par_map(
-        self, func: Callable[[A_co], B], executor: concurrent.futures.Executor
-    ) -> "Slist[B]":
+    def par_map(self, func: Callable[[A_co], B], executor: concurrent.futures.Executor) -> "Slist[B]":
         """Applies the function to each element using the specified executor. Awaits for all results.
         If executor is ProcessPoolExecutor, make sure the function passed is pickable, i.e. use functools partial instead of lambda functions"""
-        futures: list[concurrent.futures._base.Future[B]] = [
-            executor.submit(func, item) for item in self
-        ]
+        futures: list[concurrent.futures._base.Future[B]] = [executor.submit(func, item) for item in self]
         results = []
         for fut in futures:
             results.append(fut.result())
@@ -319,6 +283,9 @@ class Nil(Slist[A_co]):
     def is_empty(self) -> bool:
         return True
 
+    def __len__(self) -> int:
+        return 0
+
 
 NilSingleton = Nil[Any]()
 
@@ -327,6 +294,7 @@ class Cons(Slist[A_co]):
     def __init__(self, head: A_co, tail: Slist[A_co]):
         self.__head: Final = head
         self.__tail: Final = tail  # TODO: add immutability
+        self.__length: Final = tail.length + 1
 
     @property
     def is_empty(self) -> bool:
@@ -339,6 +307,9 @@ class Cons(Slist[A_co]):
     @property
     def tail(self) -> Slist[A_co]:
         return self.__tail
+
+    def __len__(self) -> int:
+        return self.__length
 
 
 class ListBuilder(Generic[B]):
