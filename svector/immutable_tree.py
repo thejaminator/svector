@@ -9,6 +9,18 @@ from pyrsistent._pvector import PVector as PVectorABC
 from svector.type_definitions import A_co, B, CanCompare, CanHash
 
 
+def vec(*args: B) -> "Svector[B]":
+    """
+    Convienient function to instantiate a Svector by passing multiple args instead of an iterable
+    Equivalent:
+    >>> vec(1,2,3)
+    Svector([1,2,3])
+    >>> Svector.of([1,2,3])
+    Svector([1,2,3])
+    """
+    return Svector.of(args)
+
+
 class Svector(Sequence[A_co]):
     def __init__(self, iterable: Iterable[A_co]):
         self.__data: Final[PVector[A_co]] = pyrsistent.pvector(iterable)
