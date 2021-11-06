@@ -18,3 +18,7 @@ class Comparable(Protocol):
 
     def __ge__(self: CanCompare, other: CanCompare) -> bool:
         pass
+
+
+def identity(item: B) -> B:
+    return item
