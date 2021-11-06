@@ -20,6 +20,12 @@ def test_map():
     assert Svector.of([]).map(lambda x: x * 3) == Svector.of([])
 
 
+def test_flatten_iter():
+    assert Svector.of([[1], [2, 2], [3, 3, 3]]).flatten_iter() == Svector.of([1, 2, 2, 3, 3, 3])
+    assert Svector.of([Svector.empty(), [2, 2], [3, 3, 3]]).flatten_iter() == Svector.of([2, 2, 3, 3, 3])
+    assert Svector.of([[], [2, 2], [3, 3, 3]]).flatten_iter() == Svector.of([2, 2, 3, 3, 3]) # type: ignore
+
+
 def test_is_empty():
     assert Svector.of([123]).is_empty is False
     assert Svector.of([]).is_empty is True
@@ -63,5 +69,13 @@ def test_no_mutate():
     with pytest.raises(TypeError):
         Svector.of([1, 2, 3])[0] = 1
 
+
 def test_fold_left():
     ...
+
+def test_sort():
+    class NotSortable:
+        ...
+
+    assert Svector.of([NotSortable()]).sort_by(lambda x: x)
+

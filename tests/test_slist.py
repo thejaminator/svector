@@ -38,6 +38,11 @@ def test_map():
     assert Slist.of([]).map(lambda x: x * 3) == Slist.of([])
 
 
+def test_flatten_list():
+    assert Slist.of([[1], [2, 2], [3, 3, 3]]).flatten_iter() == Slist.of([1, 2, 2, 3, 3, 3])
+    assert Slist.of([[], [2, 2], [3, 3, 3]]).flatten_iter() == Slist.of([2, 2, 3, 3, 3])  # type:ignore
+
+
 def test_is_empty():
     assert Slist.of([123]).is_empty is False
     assert Slist.of([]).is_empty is True

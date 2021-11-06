@@ -18,6 +18,7 @@ from collections import abc
 
 from svector.type_definitions import A_co, B, CanCompare, CanHash
 
+
 class Slist(abc.Sequence[A_co]):
     # Some help from https://github.com/tobgu/pyrsistent/blob/master/pyrsistent/_plist.py
 
@@ -122,8 +123,6 @@ class Slist(abc.Sequence[A_co]):
         """Alias for prepend"""
         return self.prepend(other)
 
-
-
     def extend(self, iterable: Iterable[B]) -> "Slist[Union[A_co, B]]":
         previous_item: Slist[A_co] = self
         for item in iterable:
@@ -132,6 +131,7 @@ class Slist(abc.Sequence[A_co]):
 
     def to_list(self) -> list[A_co]:
         return [item for item in self]
+
     @property
     def not_empty(self) -> bool:
         return len(self) > 0
@@ -153,7 +153,7 @@ class Slist(abc.Sequence[A_co]):
         """Runs the provided function, and filters out the Nones"""
         return self.map(func).flatten_option()
 
-    def flatten_list(self: "Slist[Sequence[B]]") -> "Slist[B]":
+    def flatten_iter(self: "Slist[Iterable[B]]") -> "Slist[B]":
         return Slist.of(item for sublist in self for item in sublist)
 
     def for_each(self, func: Callable[[A_co], None]) -> "Slist[A_co]":

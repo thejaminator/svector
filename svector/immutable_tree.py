@@ -77,7 +77,7 @@ class Svector(Sequence[A_co]):
         return Svector(self.__data.delete(index=index, stop=stop))
 
     def extend(self, obj: Iterable[B]) -> "Svector[Union[A_co,B]]":
-        return Svector(self.__data.extend(obj)) # type: ignore
+        return Svector(self.__data.extend(obj))  # type: ignore
 
     def tolist(self) -> list[A_co]:
         return self.to_list()
@@ -130,7 +130,11 @@ class Svector(Sequence[A_co]):
         """Runs the provided function, and filters out the Nones"""
         return self.map(func).flatten_option()
 
-    def flatten_list(self: "Svector[Sequence[B]]") -> "Svector[B]":
+    def flatten_iter(self: "Svector[Iterable[B]]") -> "Svector[B]":
+        """Flattens a nested iterable
+        >>> Svector.of([[1], [2, 2], [3, 3, 3]]).flatten_iter()
+        Svector.of([1, 2, 2, 3, 3, 3])
+        """
         return Svector.of(item for sublist in self for item in sublist)
 
     def for_each(self, func: Callable[[A_co], None]) -> "Svector[A_co]":
@@ -175,10 +179,15 @@ class Svector(Sequence[A_co]):
     def take(self, n: int) -> "Svector[A_co]":
         return self[:n]
 
-    def sort_by(self, key: Callable[[A_co], CanCompare], reverse: bool = False) -> "Svector[A_co]":
+    def sort(self: "Svector[CanCompare]", reverse: bool = False) -> "Svector[CanCompare]":
         """
         Mypy does not typecheck properly until https://github.com/python/mypy/issues/11167 is resolved
-        Use sort_by(lambda x: x) to sort by the element.
+        Use sort_by(lambda x: x) for a version that properly typechecks
+        """
+        return Svector.of(sorted(self, reverse=reverse))
+
+    def sort_by(self, key: Callable[[A_co], CanCompare], reverse: bool = False) -> "Svector[A_co]":
+        """
         """
         return Svector.of(sorted(self, key=key, reverse=reverse))
 
