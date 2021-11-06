@@ -1,20 +1,26 @@
-# Slist
+# Svector (Pronounced Swag-tor)
+
+Svector provide extension methods to pyrsistent data structures. 
+Easily chain your methods confidently, just like in functional languages. Leverage 
+the latest mypy features to spot errors during coding.
 
 
-[![pypi](https://img.shields.io/pypi/v/slist.svg)](https://pypi.org/project/slist)
-[![python](https://img.shields.io/pypi/pyversions/slist.svg)](https://pypi.org/project/slist)
-[![Build Status](https://github.com/thejaminator/slist/actions/workflows/dev.yml/badge.svg)](https://github.com/thejaminator/slist/actions/workflows/dev.yml)
+[![pypi](https://img.shields.io/pypi/v/svector.svg)](https://pypi.org/project/svector)
+[![python](https://img.shields.io/pypi/pyversions/svector.svg)](https://pypi.org/project/svector)
+[![Build Status](https://github.com/thejaminator/svector/actions/workflows/dev.yml/badge.svg)](https://github.com/thejaminator/svector/actions/workflows/dev.yml)
 
 ```
-pip install slist
+pip install typesafe-immutables
 ```
 
-A typesafe immutable list for python. With postfix methods for easy functional programming.
+Immutable list replacement for python. With postfix methods for easy functional programming.
 
 
 * GitHub: <https://github.com/thejaminator/slist>
 
 
-## Features
+## Quick Start
 
 
+## Methods
+Svector is heavily influenced by Scala, hence the S.

@@ -1,16 +1,15 @@
-from collections import abc, Sequence
 from functools import reduce
-from typing import Final, Union, overload, Callable, Iterable, Optional
+from typing import Final, Union, overload, Callable, Iterable, Optional, Sequence, Generic
 import concurrent.futures
 
 import pyrsistent
 from pyrsistent.typing import PVector, PVectorEvolver
 from pyrsistent._pvector import PVector as PVectorABC
 
-from slist.type_definitions import A_co, B, CanCompare, CanHash
+from svector.type_definitions import A_co, B, CanCompare, CanHash
 
 
-class Svector(abc.Sequence[A_co]):
+class Svector(Sequence[A_co]):
     def __init__(self, iterable: Iterable[A_co]):
         self.__data: Final[PVector[A_co]] = pyrsistent.pvector(iterable)
 
@@ -22,7 +21,12 @@ class Svector(abc.Sequence[A_co]):
     def of(iterable: Iterable[A_co]) -> "Svector[A_co]":
         return Svector(iterable)
 
-    """Expose standard pyristent methods"""
+    @staticmethod
+    def empty() -> "Svector[A_co]":
+        return Svector.of([])
+
+    """Expose standard pyrsistent methods
+    TODO: Maybe extend PVectorABC itself?"""
 
     @overload
     def __getitem__(self, i: int) -> A_co:
@@ -54,18 +58,14 @@ class Svector(abc.Sequence[A_co]):
         return self.__data.__hash__()
 
     def append(self, val: B) -> "Svector[Union[A_co, B]]":
-        # Pyrsistent types are wrong
+        # Type stubs Pyrsistent as invariant, but we are covariant. Implementation wise, the trie can be of any ype.
         return Svector(self.__data.append(val))  # type: ignore
 
     def delete(self, index: int, stop: Optional[int]) -> "Svector[A_co]":
         return Svector(self.__data.delete(index=index, stop=stop))
 
-    def evolver(self) -> PVectorEvolver[B]:
-        ...  # TODO
-
-    def extend(self, obj: Iterable[A_co]) -> "Svector[A_co]":
-        # TODO: pyrsistent types are wrong
-        return Svector(self.__data.extend(obj=obj))
+    def extend(self, obj: Iterable[B]) -> "Svector[Union[A_co,B]]":
+        return Svector(self.__data.extend(obj))
 
     def tolist(self) -> list[A_co]:
         return self.to_list()
@@ -74,12 +74,18 @@ class Svector(abc.Sequence[A_co]):
         return Svector(self.__data.mset(*args))
 
     def remove(self, value: B) -> "Svector[A_co]":
-        return Svector(self.__data.remove(value=value)) # type: ignore
+        """Removes an element equal to the value"""
+        return Svector(self.__data.remove(value=value))  # type: ignore
 
     def set(self, i: int, val: B) -> "Svector[Union[A_co, B]]":
+        """Sets an element at the index"""
         return Svector(self.__data.set(i=i, val=val))  # type: ignore
 
     """Exetensions"""
+
+    @staticmethod
+    def new_builder() -> "SvectorBuilder[A_co]":
+        return SvectorBuilder()
 
     def to_list(self) -> list[A_co]:
         return [item for item in self]
@@ -89,11 +95,18 @@ class Svector(abc.Sequence[A_co]):
         return len(self) > 0
 
     @property
+    def is_empty(self) -> bool:
+        return len(self) == 0
+
+    @property
     def length(self) -> int:
         return len(self)
 
     def map(self, func: Callable[[A_co], B]) -> "Svector[B]":
         return Svector.of(func(item) for item in self)
+
+    def map_enumerate(self, func: Callable[[int, A_co], None]):
+        return Svector.of(func(idx, item) for idx, item in enumerate(self))
 
     def filter(self, predicate: Callable[[A_co], bool]) -> "Svector[A_co]":
         return Svector.of(item for item in self if predicate(item))
@@ -122,7 +135,7 @@ class Svector(abc.Sequence[A_co]):
             func(idx, item)
         return self
 
-    def get(self, index: int, orElse: B) -> Union[A_co, B]:
+    def get_or_else(self, index: int, orElse: B) -> Union[A_co, B]:
         try:
             return self.__getitem__(index)
         except IndexError:
@@ -148,7 +161,7 @@ class Svector(abc.Sequence[A_co]):
         return None
 
     def take(self, n: int) -> "Svector[A_co]":
-        ...
+        return self[:n]
 
     def sort_by(self, key: Callable[[A_co], CanCompare], reverse: bool = False) -> "Svector[A_co]":
         """
@@ -204,3 +217,21 @@ class Svector(abc.Sequence[A_co]):
 
     def fold_left(self, acc: B, func: Callable[[B, A_co], B]) -> B:
         return reduce(func, self, acc)
+
+    def mk_string(self: "Svector[str]", sep: str) -> str:
+        return sep.join(self)
+
+
+class SvectorBuilder(Generic[B]):
+    def __init__(self):
+        self.__data: list[B] = []
+
+    def add(self, item: B) -> None:
+        self.__data.append(item)
+
+    def add_all(self, iterable: Iterable[B]) -> None:
+        for item in iterable:
+            self.add(item)
+
+    def result(self) -> Svector[B]:
+        return Svector.of(self.__data)

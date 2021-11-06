@@ -16,7 +16,7 @@ from typing import (
 from abc import abstractmethod
 from collections import abc
 
-from slist.type_definitions import A_co, B, CanCompare, CanHash
+from svector.type_definitions import A_co, B, CanCompare, CanHash
 
 class Slist(abc.Sequence[A_co]):
     # Some help from https://github.com/tobgu/pyrsistent/blob/master/pyrsistent/_plist.py

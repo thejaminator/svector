@@ -3,9 +3,9 @@ import timeit
 import pytest
 from pyrsistent.typing import PVector
 
-from slist.immutable_list import Slist, Cons, NilSingleton
-from slist.immutable_tree import Svector
-from slist.type_definitions import A_co
+from svector.immutable_list import Slist, Cons, NilSingleton
+from svector.immutable_tree import Svector
+from svector.type_definitions import A_co
 
 
 def test_of():
@@ -73,18 +73,18 @@ def test__len__():
 
 from pyrsistent import v, l, plist
 
-
-def test__pyrsistent() -> None:
-    items = 10000
-
-    vec = Svector(i for i in range(items))
-    time_vec = timeit.timeit(lambda: vec.map(lambda x: x * 3), number=1000)
-
-    slist = Slist.of(i for i in range(items))
-    time_slist = timeit.timeit(lambda: slist.map(lambda x: x * 3), number=1000)
-
-    pyrsist_list: PVector[int] = v(*(i for i in range(1, items)))
-    time_pyrsist = timeit.timeit(lambda: v(*(i * 3 for i in pyrsist_list)), number=1000)
-    py_list = [i for i in range(1, items)]
-    time_python = timeit.timeit(lambda: [i * 3 for i in py_list], number=1000)
-    assert False, f"Slist:{time_slist} vs SVec{time_vec} vs Pyrsistent{time_pyrsist} vs StdList{time_python}"
+#
+# def test__pyrsistent() -> None:
+#     items = 10000
+#
+#     vec = Svector(i for i in range(items))
+#     time_vec = timeit.timeit(lambda: vec.map(lambda x: x * 3), number=1000)
+#
+#     slist = Slist.of(i for i in range(items))
+#     time_slist = timeit.timeit(lambda: slist.map(lambda x: x * 3), number=1000)
+#
+#     pyrsist_list: PVector[int] = v(*(i for i in range(1, items)))
+#     time_pyrsist = timeit.timeit(lambda: v(*(i * 3 for i in pyrsist_list)), number=1000)
+#     py_list = [i for i in range(1, items)]
+#     time_python = timeit.timeit(lambda: [i * 3 for i in py_list], number=1000)
+#     assert False, f"Slist:{time_slist} vs SVec{time_vec} vs Pyrsistent{time_pyrsist} vs StdList{time_python}"
