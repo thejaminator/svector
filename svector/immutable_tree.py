@@ -188,6 +188,9 @@ class Svector(Sequence[A_co]):
 
     def sort_by(self, key: Callable[[A_co], CanCompare], reverse: bool = False) -> "Svector[A_co]":
         """
+        Sorts by the given key
+        >>> Svector.of([1, 2, 3, 4]).sort_by(lambda x: x, reverse=True)
+        Svector([4, 3, 2, 1])
         """
         return Svector.of(sorted(self, key=key, reverse=reverse))
 
@@ -236,11 +239,59 @@ class Svector(Sequence[A_co]):
         """Returns 0 when the list is empty"""
         return sum(self)
 
+    def max_by_option(self, key: Callable[[A_co], CanCompare]) -> Optional[A_co]:
+        if self.not_empty:
+            return max(self, key=key)
+        else:
+            return None
+
+    def min_by_option(self, key: Callable[[A_co], CanCompare]) -> Optional[A_co]:
+        if self.not_empty:
+            return min(self, key=key)
+        else:
+            return None
+
+    @property
+    def first_option(self) -> Optional[A_co]:
+        if self.not_empty:
+            return self[0]
+
+        else:
+            return None
+
+    @property
+    def last_option(self) -> Optional[A_co]:
+        if self.not_empty:
+            return self[-1]
+
+        else:
+            return None
+
     def fold_left(self, acc: B, func: Callable[[B, A_co], B]) -> B:
         return reduce(func, self, acc)
 
     def mk_string(self: "Svector[str]", sep: str) -> str:
         return sep.join(self)
+
+    """Methods for compat with pydantic"""
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v, field):  # field: ModelField
+        subfield = field.sub_fields[0]  # e.g. the int type in Svector[int]
+        if not isinstance(v, list):
+            raise TypeError(f"list required to instantiate a Svector, got {v} of type {type(v)}")
+        validated_values = []
+        for idx, item in enumerate(v):
+            valid_value, error = subfield.validate(item, {}, loc=str(idx))
+            if error is not None:
+                raise ValueError(f"Error validating {item}, Error: {error}")
+
+            validated_values.append(valid_value)
+        return Svector.of(validated_values)
 
 
 class SvectorBuilder(Generic[B]):

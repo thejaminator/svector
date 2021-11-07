@@ -10,15 +10,6 @@ class Comparable(Protocol):
     def __lt__(self: CanCompare, other: CanCompare) -> bool:
         pass
 
-    def __gt__(self: CanCompare, other: CanCompare) -> bool:
-        pass
-
-    def __le__(self: CanCompare, other: CanCompare) -> bool:
-        pass
-
-    def __ge__(self: CanCompare, other: CanCompare) -> bool:
-        pass
-
 
 def identity(item: B) -> B:
     return item

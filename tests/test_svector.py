@@ -1,4 +1,7 @@
+from dataclasses import dataclass
+
 import pytest
+from pydantic import BaseModel
 
 from svector.immutable_tree import Svector
 
@@ -23,7 +26,7 @@ def test_map():
 def test_flatten_iter():
     assert Svector.of([[1], [2, 2], [3, 3, 3]]).flatten_iter() == Svector.of([1, 2, 2, 3, 3, 3])
     assert Svector.of([Svector.empty(), [2, 2], [3, 3, 3]]).flatten_iter() == Svector.of([2, 2, 3, 3, 3])
-    assert Svector.of([[], [2, 2], [3, 3, 3]]).flatten_iter() == Svector.of([2, 2, 3, 3, 3]) # type: ignore
+    assert Svector.of([[], [2, 2], [3, 3, 3]]).flatten_iter() == Svector.of([2, 2, 3, 3, 3])  # type: ignore
 
 
 def test_is_empty():
@@ -51,6 +54,7 @@ def test_extend():
 
 def test__init__():
     assert Svector([1, 2, 3]) == Svector.of([1, 2, 3])
+    Svector.of([]).new_builder()
 
 
 def test__len__():
@@ -73,9 +77,33 @@ def test_no_mutate():
 def test_fold_left():
     ...
 
+
 def test_sort():
+    assert Svector.of([1, 2, 3, 4]).sort_by(lambda x: x, reverse=True) == Svector.of([4, 3, 2, 1])
+
     class NotSortable:
         ...
 
-    assert Svector.of([NotSortable()]).sort_by(lambda x: x)
+    with pytest.raises(TypeError):
+        Svector.of([NotSortable(), NotSortable()]).sort_by(lambda x: x)
 
+
+def test_max_by():
+    assert Svector.of([1, 2, 3, 4]).max_by_option(lambda x: x) == 4
+
+    @dataclass(frozen=True)
+    class Something:
+        field: int
+
+    assert Svector.of([Something(field=1), Something(field=2)]).max_by_option(lambda x: x.field) == Something(field=2)
+
+
+@pytest.mark.skip("Pydantic issue https://github.com/samuelcolvin/pydantic/issues/3298")
+def test_pydantic():
+    class TestModel(BaseModel):
+        items: Svector[int]
+
+        class Config:
+            frozen = True
+
+    assert TestModel(items=Svector.of([1, 2, 3]))
