@@ -115,3 +115,7 @@ ENV/
 
 # mkdocs build dir
 site/
+
+# sync
+.tmp.drivedownload
+.tmp.driveupload

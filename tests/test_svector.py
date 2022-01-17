@@ -4,6 +4,7 @@ import pytest
 from pydantic import BaseModel
 
 from svector.immutable_tree import Svector
+from svector.pydantic_compat import SvectorPydantic
 
 
 def test_of():
@@ -71,7 +72,7 @@ def test_sum():
 
 def test_no_mutate():
     with pytest.raises(TypeError):
-        Svector.of([1, 2, 3])[0] = 1
+        Svector.of([1, 2, 3])[0] = 1 # type: ignore
 
 
 def test_fold_left():
@@ -85,7 +86,7 @@ def test_sort():
         ...
 
     with pytest.raises(TypeError):
-        Svector.of([NotSortable(), NotSortable()]).sort_by(lambda x: x)
+        Svector.of([NotSortable(), NotSortable()]).sort_by(lambda x: x) # type: ignore
 
 
 def test_max_by():
@@ -98,12 +99,11 @@ def test_max_by():
     assert Svector.of([Something(field=1), Something(field=2)]).max_by_option(lambda x: x.field) == Something(field=2)
 
 
-@pytest.mark.skip("Pydantic issue https://github.com/samuelcolvin/pydantic/issues/3298")
-def test_pydantic():
+def test_pydantic_init():
     class TestModel(BaseModel):
-        items: Svector[int]
+        items: SvectorPydantic[int]
 
-        class Config:
-            frozen = True
-
-    assert TestModel(items=Svector.of([1, 2, 3]))
+    my_instance = TestModel(items=Svector.of([1, 2, 3]))
+    assert isinstance(my_instance.items, Svector)
+    my_instance_list = TestModel(items=[1, 2, 3])
+    assert isinstance(my_instance_list.items, Svector)

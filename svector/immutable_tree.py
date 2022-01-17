@@ -1,10 +1,9 @@
+import concurrent.futures
 from functools import reduce
 from typing import Final, Union, overload, Callable, Iterable, Optional, Sequence, Generic
-import concurrent.futures
 
 import pyrsistent
-from pyrsistent.typing import PVector, PVectorEvolver
-from pyrsistent._pvector import PVector as PVectorABC
+from pyrsistent.typing import PVector
 
 from svector.type_definitions import A_co, B, CanCompare, CanHash
 
@@ -19,6 +18,12 @@ def vec(*args: B) -> "Svector[B]":
     Svector([1,2,3])
     """
     return Svector.of(args)
+
+
+class SequenceMeta(Sequence[A_co]):
+    def __getitem__(self, t):
+        # For pydantic compat see https://github.com/samuelcolvin/pydantic/issues/380#issuecomment-594639970
+        return type('Sequence', (Sequence,), {'__dtype__': t})
 
 
 class Svector(Sequence[A_co]):
@@ -272,26 +277,6 @@ class Svector(Sequence[A_co]):
 
     def mk_string(self: "Svector[str]", sep: str) -> str:
         return sep.join(self)
-
-    """Methods for compat with pydantic"""
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v, field):  # field: ModelField
-        subfield = field.sub_fields[0]  # e.g. the int type in Svector[int]
-        if not isinstance(v, list):
-            raise TypeError(f"list required to instantiate a Svector, got {v} of type {type(v)}")
-        validated_values = []
-        for idx, item in enumerate(v):
-            valid_value, error = subfield.validate(item, {}, loc=str(idx))
-            if error is not None:
-                raise ValueError(f"Error validating {item}, Error: {error}")
-
-            validated_values.append(valid_value)
-        return Svector.of(validated_values)
 
 
 class SvectorBuilder(Generic[B]):
