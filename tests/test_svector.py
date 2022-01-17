@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 from pydantic import BaseModel
 
-from svector.immutable_tree import Svector
+from svector.immutable_tree import Svector, identity
 from svector.pydantic_compat import SvectorPydantic
 
 
@@ -72,7 +72,7 @@ def test_sum():
 
 def test_no_mutate():
     with pytest.raises(TypeError):
-        Svector.of([1, 2, 3])[0] = 1 # type: ignore
+        Svector.of([1, 2, 3])[0] = 1  # type: ignore
 
 
 def test_fold_left():
@@ -86,7 +86,7 @@ def test_sort():
         ...
 
     with pytest.raises(TypeError):
-        Svector.of([NotSortable(), NotSortable()]).sort_by(lambda x: x) # type: ignore
+        Svector.of([NotSortable(), NotSortable()]).sort_by(lambda x: x)  # type: ignore
 
 
 def test_max_by():
@@ -107,3 +107,20 @@ def test_pydantic_init():
     assert isinstance(my_instance.items, Svector)
     my_instance_list = TestModel(items=[1, 2, 3])
     assert isinstance(my_instance_list.items, Svector)
+
+
+def test_group_by():
+    assert Svector.of([1, 1, 2, 2, 4]).group_by(identity) == Svector(
+        [(1, Svector([1, 1])), (2, Svector([2, 2])), (4, Svector([4]))]
+    )
+    assert Svector.of(["james", "james", "elliot"]).group_by(lambda x: x) == Svector(
+        [('james', Svector(['james', 'james'])), ('elliot', Svector(['elliot']))]
+    )
+
+
+def test_group_by_dict():
+    assert Svector.of([1, 1, 2, 2, 4]).group_by(lambda x: x).to_dict() == {
+        1: Svector([1, 1]),
+        2: Svector([2, 2]),
+        4: Svector([4]),
+    }

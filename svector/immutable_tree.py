@@ -1,11 +1,18 @@
+from __future__ import annotations
 import concurrent.futures
+import random
+import re
 from functools import reduce
-from typing import Final, Union, overload, Callable, Iterable, Optional, Sequence, Generic
+from itertools import groupby
+from typing import Union, overload, Callable, Iterable, Optional, Sequence, Generic, List, Tuple, Dict, Any
 
 import pyrsistent
 from pyrsistent.typing import PVector
 
 from svector.type_definitions import A_co, B, CanCompare, CanHash
+
+# TODO: investigate mypy typing
+identity = lambda x: x
 
 
 def vec(*args: B) -> "Svector[B]":
@@ -28,7 +35,11 @@ class SequenceMeta(Sequence[A_co]):
 
 class Svector(Sequence[A_co]):
     def __init__(self, iterable: Iterable[A_co]):
-        self.__data: Final[PVector[A_co]] = pyrsistent.pvector(iterable)
+        self.__data: PVector[A_co]
+        if isinstance(iterable, Svector):
+            self.__data = iterable.__data
+        else:
+            self.__data = pyrsistent.pvector(iterable)
 
     @staticmethod
     def from_pvector(vec: PVector[B]) -> "Svector[B]":
@@ -66,7 +77,7 @@ class Svector(Sequence[A_co]):
         return self.__data == other
 
     def __repr__(self):
-        return f"SVector({list(self.__data)})"
+        return f"Svector({list(self.__data)})"
 
     def __iter__(self):
         return iter(self.__data)
@@ -83,6 +94,9 @@ class Svector(Sequence[A_co]):
 
     def extend(self, obj: Iterable[B]) -> "Svector[Union[A_co,B]]":
         return Svector(self.__data.extend(obj))  # type: ignore
+
+    def __add__(self, other: "Iterable[B]") -> "Svector[Union[A_co, B]]":
+        return self.extend(other)
 
     def tolist(self) -> list[A_co]:
         return self.to_list()
@@ -107,6 +121,24 @@ class Svector(Sequence[A_co]):
     def to_list(self) -> list[A_co]:
         return [item for item in self]
 
+    @overload
+    def to_dict(self: "Svector[Tuple[CanHash, Svector[B]]]") -> Dict[CanHash, Svector[B]]:
+        ...
+
+    @overload
+    def to_dict(self: "Svector[Tuple[CanHash, List[B]]]") -> Dict[CanHash, List[B]]:
+        ...
+
+    def to_dict(self) -> Union[Dict[CanHash, Svector[B]], Dict[CanHash, List[B]]]:
+        """
+        Transforms a Svector of key value pairs to a dictionary
+        >>> Svector([(1, [1, 1]), (2, [2, 2])]).to_dict()
+        # Equivalent to
+        >>> Svector([1, 1, 2, 2]).group_by(lambda x: x).to_dict()
+        {1: Svector([1, 1]), 2: Svector([2, 2])}
+        """
+        return dict(self)
+
     @property
     def not_empty(self) -> bool:
         return len(self) > 0
@@ -128,6 +160,18 @@ class Svector(Sequence[A_co]):
     def filter(self, predicate: Callable[[A_co], bool]) -> "Svector[A_co]":
         return Svector.of(item for item in self if predicate(item))
 
+    def filter_text_search(self, key: Callable[[A_co], str], search: List[str]) -> "Svector[A_co]":
+        """Filters a list of text with text terms"""
+
+        def matches_search(text: str) -> bool:
+            if search:
+                search_regex = re.compile("|".join(search), re.IGNORECASE)
+                return bool(re.search(search_regex, text))
+            else:
+                return True  # No filter if search undefined
+
+        return self.filter(predicate=lambda item: matches_search(key(item)))  # type: ignore
+
     def flatten_option(self: "Svector[Optional[B]]") -> "Svector[B]":
         return Svector.of(item for item in self if item is not None)
 
@@ -142,19 +186,40 @@ class Svector(Sequence[A_co]):
         """
         return Svector.of(item for sublist in self for item in sublist)
 
+    def grouped(self, size: int) -> "Svector[Svector[A_co]]":
+        output = List[Svector[A_co]]()
+        for i in range(0, self.length, size):
+            output.append(self[i : i + size])
+        return Svector.of(output)
+
+    def group_by(self, key: Callable[[A_co], CanHash]) -> "Svector[Tuple[CanHash, Svector[A_co]]]":
+        groupby_obj = groupby(self, key=key)
+        return Svector.of((i[0], Svector.of(i[1])) for i in groupby_obj)
+
     def for_each(self, func: Callable[[A_co], None]) -> "Svector[A_co]":
         """Runs an effect on each element, and returns the original list
-        e.g. SVector.of([1,2,3]).foreach(print)"""
+        e.g. Svector.of([1,2,3]).foreach(print)"""
         for item in self:
             func(item)
         return self
 
     def for_each_enumerate(self, func: Callable[[int, A_co], None]) -> "Svector[A_co]":
         """Runs an effect on each element, and returns the original list
-        e.g. SVector.of([1,2,3]).foreach(print)"""
+        e.g. Svector.of([1,2,3]).foreach(print)"""
         for idx, item in enumerate(self):
             func(idx, item)
         return self
+
+    def zip(self, that: Sequence[B]) -> "Svector[Tuple[A_co, B]]":
+        my_length = len(self)
+        that_length = len(that)
+        if my_length != that_length:
+            raise TypeError(f"Zipping with two different length sequences. {my_length} vs {that_length}")
+        return Svector(zip(self, that))
+
+    def slice_with_bool(self, bools: Sequence[B]) -> "Svector[A_co]":
+        """Gets elements of the Svector with a sequence of booleans that are of the same length"""
+        return self.zip(bools).flat_map_option(lambda tup: tup[0] if tup[1] is True else None)
 
     def get_or_else(self, index: int, orElse: B) -> Union[A_co, B]:
         try:
@@ -198,6 +263,21 @@ class Svector(Sequence[A_co]):
         Svector([4, 3, 2, 1])
         """
         return Svector.of(sorted(self, key=key, reverse=reverse))
+
+    def shuffle(self) -> "Svector[A_co]":
+        sampled = random.sample(self.__data, k=len(self))
+        return Svector(sampled)  # shuffle makes it back into a list instead of Slist
+
+    def split_by(self, predicate: Callable[[A_co], bool]) -> "Tuple[Svector[A_co], Svector[A_co]]":
+        """Splits the list into two lists based on the predicate"""
+        left = List[A_co]()
+        right = List[A_co]()
+        for item in self:
+            if predicate(item):
+                left.append(item)
+            else:
+                right.append(item)
+        return Svector(left), Svector(right)
 
     @property
     def distinct(self: "Svector[CanHash]") -> "Svector[CanHash]":
